@@ -108,15 +108,15 @@ function productController() {
     //**********************************  Find One Product  ******************************** */
     async search(req, resp) {
       try {
-        const productId = req.params.id;
-        const searchProduct = await Product.find({
-          $or: [
+        let productId = req.params.key;
+        let searchProduct = await Product.find({
+          "$or": [
             { name: { $regex: productId } },
             { company: { $regex: productId } },
           ],
         }).select("-updatedAt -createdAt -_v");
-        if (!searchProduct) {
-          return resp.status(404).json({ error: "Product not match" });
+        if (searchProduct.length === 0) {
+          return resp.status(404).json({ error: "Product not found" });
         }
         resp.json(searchProduct);
       } catch (err) {
