@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const bodyParser = require('body-parser')
 const session = require('express-session')
+const jwt = require('jsonwebtoken');
 const app = express();
 
 
