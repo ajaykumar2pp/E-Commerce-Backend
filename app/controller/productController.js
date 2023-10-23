@@ -19,6 +19,7 @@ function productController() {
           userId,
           company,
         });
+        console.log(createProduct)
         resp.status(201).json({ data: { product: createProduct } });
         createProduct.save();
       } catch (err) {

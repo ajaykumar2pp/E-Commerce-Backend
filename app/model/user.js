@@ -9,4 +9,4 @@ const productSchema = new Schema(
        
     },
     { timestamps: true });
-module.exports = mongoose.model('E-comm', productSchema);
+module.exports = mongoose.model('User', productSchema);
