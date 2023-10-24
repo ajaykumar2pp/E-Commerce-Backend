@@ -1,4 +1,5 @@
 const Product = require("../model/product");
+const User = require('../model/user')
 
 function productController() {
   return {
@@ -11,7 +12,7 @@ function productController() {
 
     async create(req, resp) {
       try {
-        const { name, price, quantity, userId, company } = req.body;
+        const { name, price, quantity, company, userId } = req.body;
         const createProduct = await Product.create({
           name,
           price,
@@ -19,9 +20,19 @@ function productController() {
           userId,
           company,
         });
+
+        // Find user by id
+        const user = await User.findById(userId);
+
+        // If the user is found, add the product reference to the user
+        if (user) {
+          user.products.push(createProduct);
+          await user.save();
+        }
+
         console.log(createProduct)
         resp.status(201).json({ data: { product: createProduct } });
-        createProduct.save();
+        
       } catch (err) {
         resp.status(500).json({ error: "Failed to save product" });
       }

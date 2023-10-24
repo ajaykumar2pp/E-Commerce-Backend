@@ -24,7 +24,7 @@ function initRoutes(app) {
   app.get("/search/:key", productController().search);
 
   // add user
-  app.post("/register", userController().newUser);
+  app.post("/register", userController().createUser);
   // login user
   app.post("/login", userController().loginUser);
 }

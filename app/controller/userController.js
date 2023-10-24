@@ -1,45 +1,92 @@
+require('dotenv').config()
 const User = require("../model/user");
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const moment = require('moment');
+moment().format();
 
 function userController() {
   return {
-    async newUser(req, resp) {
+    async createUser(req, resp) {
       try {
         const { username, email, password } = req.body;
+
+        // Validate input data
+        if (!username || !email || !password) {
+          return resp.status(400).json({ message: 'Missing required fields' });
+        }
+
+        // Check if a user with the provided Email ID already exists
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+          return resp.status(409).json({ message: 'User already exists with this Email ID Register' });
+        }
 
         // Hash the password before storing it in the database
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        let createUser = await User.create({
+        // Create the user
+        const newUser = await User.create({
           username,
-          email,
-          password:hashedPassword
+          email: email.toLowerCase(),
+          password: hashedPassword,
+          date: moment().format('MMMM Do YYYY, h:mm:ss a')
         });
-        createUser.save();
-        createUser = createUser.toObject();
-        delete createUser.password;
-        resp.status(201).json({ data: { user: createUser } });
-        console.log(createUser)
+
+
+        // Remove the password field from the response
+        const userWithoutPassword = newUser.toObject();
+        delete userWithoutPassword.password;
+
+        resp.status(201).json({ data: { user: userWithoutPassword } });
+        console.log(userWithoutPassword)
       } catch (err) {
-        resp.status(500).json({ error: "Failed User" });
+        resp.status(500).json({ error: "Failed to create user" });
       }
     },
 
     async loginUser(req, resp) {
+      const { email, password } = req.body;
       console.log(req.body)
-      if (req.body.password && req.body.email) {
-        let user = await User.findOne(req.body).select("-password");
-        if (user) {
-          resp.send(user)
-        }
-        else {
-          resp.send({ result: "Plz Check Passowrd or Email" })
-        }
-      } else {
-        resp.send({ result: "Invalid User" })
+
+      // Validate input data
+      if (!email || !password) {
+        return resp.status(400).json({ message: 'Missing required fields' });
       }
 
+      // Check if a user with the provided name exists
+      const userLogin = await User.findOne({ email });
+      console.log(userLogin)
 
+      if (!userLogin) {
+        return resp.status(404).json({ message: 'User not found' });
+      }
+
+      if (!userLogin) {
+        return resp.status(404).json({ message: 'User not found' });
+      }
+      // Compare the provided password with the stored hashed password
+      const passwordMatch = await bcrypt.compare(password, userLogin.password);
+
+      if (!passwordMatch) {
+        return resp.status(401).json({ message: 'Invalid  password' });
+      }
+
+      // Create and sign a JWT token
+      const token = jwt.sign({ userID: userLogin._id, userName: userLogin.username }, process.env.SECRET_KEY, {
+        expiresIn: '24h', // You can adjust the token expiration as needed
+      });
+
+      return resp.status(200).json({
+        message: 'User Login in successful',
+        userID: userLogin._id,
+        userName: userLogin.username,
+        data: {
+          token
+        },
+      });
     },
   };
 }
