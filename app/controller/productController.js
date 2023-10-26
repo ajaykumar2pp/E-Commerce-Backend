@@ -140,9 +140,20 @@ function productController() {
         if (!deleteProduct) {
           return resp.status(404).json({ error: "Product not found" });
         }
-        resp
-          .status(200)
-          .json({ data: { message: "product deleted successfully" } });
+
+        const imageUrl = deleteProduct._doc.image;
+        // Extract the path from the URL 
+        const imagePath = imageUrl.replace("http://localhost:8500/", ''); 
+        console.log(imagePath)
+
+        fs.unlink(imagePath, (err) => {
+          if (err) {
+            // console.error(err);
+            return resp.status(500).json({ error: "Image Not Deleted" });
+          }
+
+          return resp.status(200).json({ data: { message: "Product deleted successfully" } });
+        });
       } catch {
         resp.status(500).json({ error: "Failed to delete product" });
       }

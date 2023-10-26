@@ -13,6 +13,7 @@ const app = express();
 connectMonggose();
 
 
+
 //*****************************  Session config   ************************************//
 app.use(session({
     secret:  process.env.SECRET_KEY,
