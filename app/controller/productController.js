@@ -32,9 +32,8 @@ function productController() {
     // ****************************  Product Create ******************************//
 
     async create(req, resp) {
-
       try {
-        await handleMultipartData(req, resp, async (err) => {
+        handleMultipartData(req, resp, async (err) => {
           if (err) {
             console.error(err);
             return resp.status(500).json({ error: 'Internal server error' });
@@ -80,9 +79,6 @@ function productController() {
         console.error(err);
         resp.status(500).json({ error: 'Failed to save product' });
       }
-
-
-
     },
 
     // ********************************  Find List All Product *******************************//
@@ -104,32 +100,55 @@ function productController() {
     //******************************** Product Update by Id  **************************** */
     async update(req, resp) {
       try {
-        const eComId = req.params.id;
-        const { name, price, quantity, company } = req.body;
-        const updateProduct = await Product.findOneAndUpdate(
-          { _id: eComId },
-          {
-            name,
-            price,
-            quantity,
-            company,
-          },
-          { new: true }
-        )
-          .select("-updatedAt -createdAt -__v")
-          .sort({ _id: -1 });
-        if (!updateProduct) {
-          return resp.status(404).json({ error: "Product not found" });
-        }
-        console.log(updateProduct);
-        resp.status(200).json({
-          data: {
-            product: updateProduct,
-            message: "Product Update sucessfully",
-          },
-        });
+        handleMultipartData(req, resp, async (err) => {
+          if (err) {
+            console.error(err);
+            return resp.status(500).json({ error: 'Internal server error' });
+          }
+
+          const { name, price, quantity, company } = req.body;
+          console.log(req.body)
+
+
+          let filePath;
+          if (req.file) {
+            filePath = req.file.path;
+          }
+
+
+          // const filePath = req.file.path;
+          const imageURL = `http://${req.headers.host}/${filePath.replace(/\\/g, '/')}`;
+          console.log(req.file)
+          console.log(filePath)
+
+          const updateProduct = await Product.findOneAndUpdate(
+            { _id: req.params.id },
+            {
+              name,
+              price,
+              quantity,
+              company,
+              ...(req.file && { image: imageURL }),
+            },
+            { new: true }
+          ).select("-updatedAt -createdAt -__v")
+            .sort({ _id: -1 });
+
+          if (!updateProduct) {
+            return resp.status(404).json({ error: "Product not found" });
+          }
+
+          console.log(updateProduct)
+          resp.status(201).json({
+            data: {
+              product: updateProduct,
+              message: "Product Update sucessfully"
+            }
+          })
+        })
       } catch (err) {
-        resp.status(500).json({ error: "Failed to update product" });
+        console.error(err);
+        resp.status(500).json({ error: 'Failed to update product' });
       }
     },
     // ********************************  Delete products by Id  ******************************//
@@ -143,7 +162,7 @@ function productController() {
 
         const imageUrl = deleteProduct._doc.image;
         // Extract the path from the URL 
-        const imagePath = imageUrl.replace("http://localhost:8500/", ''); 
+        const imagePath = imageUrl.replace("http://localhost:8500/", '');
         console.log(imagePath)
 
         fs.unlink(imagePath, (err) => {
@@ -175,7 +194,7 @@ function productController() {
       }
     },
 
-    //**********************************  Find One Product  ******************************** */
+    //**********************************  Search Product  ******************************** */
     async search(req, resp) {
       try {
         let productId = req.params.key;
