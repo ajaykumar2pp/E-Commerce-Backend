@@ -110,18 +110,61 @@ function productController() {
           console.log(req.body)
 
 
+
           let filePath;
           if (req.file) {
-            filePath = req.file.path;
+            // filePath = req.file.path
+            filePath = req.file.path.replace(/\\/g, '/');
           }
 
 
           // const filePath = req.file.path;
-          const imageURL = `http://${req.headers.host}/${filePath.replace(/\\/g, '/')}`;
+          const imageURL = `http://${req.headers.host}/${filePath}`;
+          // const imageURL = `http://${req.headers.host}/${filePath.replace(/\\/g, '/')}`;
           console.log(req.file)
           console.log(filePath)
 
-          const updateProduct = await Product.findOneAndUpdate(
+          const existingProduct = await Product.findById(req.params.id);
+          console.log("Exists Product : ", existingProduct)
+
+          if (!existingProduct) {
+            return resp.status(404).json({ error: 'Product not found' });
+          }
+
+
+
+        
+          // If a new image is uploaded, delete the previous image
+          if (req.file && existingProduct.image) {
+            try {
+              const imageUrl = existingProduct._doc.image;
+              // Extract the path from the URL
+              const imagePath = imageUrl.replace(`http://${req.headers.host}/`, '');
+
+              fs.unlink(imagePath, (err) => {
+                if (err) {
+                  console.error(err);
+                  return resp.status(500).json({ error: "Image Not Deleted" });
+                }
+              });
+            } catch (err) {
+              console.error(err);
+              return resp.status(500).json({ error: "Failed to delete previous image" });
+            }
+          }
+
+
+          let image;
+          if (imageURL) {
+            image = imageURL;
+          } else {
+
+            image = existingProduct.image;
+          }
+
+
+
+          const updateProduct = await Product.findByIdAndUpdate(
             { _id: req.params.id },
             {
               name,
