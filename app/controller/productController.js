@@ -40,7 +40,11 @@ function productController() {
           }
 
           const { name, price, quantity, company, userId } = req.body;
+          // const imagePath = req.file ? req.file.path : null;
           console.log(req.body)
+
+
+          const filePath = req.file.path;
 
           if (!name || !price || !quantity || !company || !userId) {
             // If any required field is missing in the request, delete the uploaded image
@@ -50,8 +54,9 @@ function productController() {
             return resp.status(400).json({ error: 'All required fields are mandatory' });
           }
 
-          const filePath = req.file.path;
+          
           const imageURL = `http://${req.headers.host}/${filePath.replace(/\\/g, '/')}`;
+          // const imageURL = `${process.env.APP_URL}/${filePath.replace(/\\/g, '/')}`;
           console.log(req.file)
           console.log(filePath)
 

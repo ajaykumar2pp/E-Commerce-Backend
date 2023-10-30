@@ -12,7 +12,7 @@ const productSchema = new Schema(
         image: {
             type: String, required: true,
             get: function (image) {
-                if (process.env.ON_RENDER === 'false') {
+                if (process.env.ON_RENDER === 'true') {
                     return image;
                 }
                 return `${image}`
