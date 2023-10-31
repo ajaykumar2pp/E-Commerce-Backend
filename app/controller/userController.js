@@ -75,17 +75,23 @@ function userController() {
       }
 
       // Create and sign a JWT token
-      const token = jwt.sign({ userID: userLogin._id, userName: userLogin.username }, process.env.SECRET_KEY, {
+      const token = jwt.sign({ _id: userLogin._id, username: userLogin.username , email: userLogin.email}, process.env.SECRET_KEY, {
         expiresIn: '24h', // You can adjust the token expiration as needed
       });
 
+      // resp.status(201).json({ data: { user: userWithoutPassword } });
       return resp.status(200).json({
-        message: 'User Login in successful',
-        userID: userLogin._id,
-        userName: userLogin.username,
         data: {
-          token
-        },
+          message: 'User Login in successful',
+          user: {
+            token,
+            _id: userLogin._id,
+            username: userLogin.username,
+            email:email
+
+          }
+        }
+
       });
     },
   };
