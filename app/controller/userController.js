@@ -64,9 +64,7 @@ function userController() {
         return resp.status(404).json({ message: 'User not found' });
       }
 
-      if (!userLogin) {
-        return resp.status(404).json({ message: 'User not found' });
-      }
+      
       // Compare the provided password with the stored hashed password
       const passwordMatch = await bcrypt.compare(password, userLogin.password);
 
@@ -76,7 +74,7 @@ function userController() {
 
       // Create and sign a JWT token
       const token = jwt.sign({ _id: userLogin._id, username: userLogin.username , email: userLogin.email}, process.env.SECRET_KEY, {
-        expiresIn: '24h', // You can adjust the token expiration as needed
+        expiresIn: '24h', 
       });
 
       // resp.status(201).json({ data: { user: userWithoutPassword } });
